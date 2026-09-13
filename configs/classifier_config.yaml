@@ -1,0 +1,31 @@
+# Team classifier config - 10 teams, trained on REAL DOMAIN DATA: hand-labeled
+# crops from own_footage (the actual YOLO detector's own crop output),
+# verified against color source frames rather than guessed from greyscale.
+# This directly closes the domain-shift gap that caused every previous
+# public-dataset-trained classifier to fail on real broadcast footage.
+# Spans multiple seasons/eras since source kkvsm dataset itself spans several
+# years (2022+) - each team's folder holds whatever era liveries actually
+# appeared in the labeled frames.
+model:
+  backbone: resnet50
+  pretrained: true
+  num_classes: 10
+  freeze_backbone: false
+
+data:
+  train_dir: data/processed/own_footage_10team/train
+  val_dir: data/processed/own_footage_10team/valid
+  img_size: 224
+  class_names: ["Alpha Tauri", "Alpine", "Aston Martin", "Ferrari F1 car", "Haas", "Kick Sauber", "McLaren F1 car", "Mercedes F1 car", "Red Bull Racing F1 car", "Williams F1 car"]
+
+train:
+  epochs: 40
+  batch_size: 32
+  lr: 0.0001
+  optimizer: adamw
+  scheduler: cosine
+  device: cuda
+
+output:
+  checkpoint_dir: models/checkpoints/classifier
+  log_dir: outputs/logs/classifier

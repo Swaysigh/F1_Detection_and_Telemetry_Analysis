@@ -1,0 +1,41 @@
+# Core
+numpy
+opencv-python
+pillow
+pyyaml
+tqdm
+
+# Deep learning
+# NOTE: torch and torchvision are intentionally NOT listed here.
+# Installing this file with plain `pip install -r requirements.txt` pulls the
+# CPU-only build from PyPI and will SILENTLY REPLACE a working CUDA install.
+# Install them separately, in this exact order:
+#
+#   pip install -r requirements.txt
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#
+# Verify after: python -c "import torch; print(torch.cuda.is_available())"
+ultralytics          # YOLOv8/v11
+
+# Classification backbones (torchvision already has resnet50 / efficientnet,
+# timm gives more variants if needed)
+timm
+
+# Tracking
+lapx                  # replaces 'lap' - avoids C++ build errors, prebuilt wheels
+filterpy              # kalman filter, useful if building custom tracker
+
+# Data handling / viz
+pandas
+matplotlib
+scikit-learn
+
+# Dataset acquisition
+roboflow               # scripted dataset download from Roboflow Universe
+
+# Ground truth telemetry (evaluation stage)
+fastf1                  # pull FIA telemetry to validate vision-based speed/position estimates
+
+# Dev tools
+pytest
+black

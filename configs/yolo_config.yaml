@@ -1,0 +1,23 @@
+# YOLO detection config
+model:
+  arch: yolov8n.pt        # swap for yolov8s/m/l as you scale up
+  num_classes: 1           # e.g. "f1_car" — expand if detecting drivers separately
+
+data:
+  yaml_path: data/processed/data.yaml   # single file YOLO reads - contains train/val/test paths + class names
+
+train:
+  epochs: 45                # started at 100; sanity check hit mAP50=0.94 in just 3 epochs,
+                             # so dropped this to reduce overfitting risk on ~1900 train images.
+                             # patience=20 below will early-stop if val performance plateaus anyway.
+  batch_size: 16             # RTX 3050 (8GB VRAM) handled batch=8 fine in sanity check;
+                             # 16 should fit too - drop to 8 if you hit CUDA out-of-memory.
+  img_size: 640
+  device: 0                # gpu id, or "cpu"
+  lr0: 0.01
+  patience: 20              # early stopping - stops if val mAP doesn't improve for 20 epochs
+
+output:
+  project_dir: outputs/predictions/yolo   # note: Ultralytics still nests this under runs/detect/
+                                            # by default unless overridden - handled in train_yolo.py
+  run_name: exp1

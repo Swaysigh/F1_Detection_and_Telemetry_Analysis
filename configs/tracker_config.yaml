@@ -1,0 +1,13 @@
+# Tracking config (e.g. ByteTrack-style params)
+tracker:
+  type: bytetrack
+  track_thresh: 0.5
+  track_buffer: 30
+  match_thresh: 0.8
+  frame_rate: 30
+
+# Homography / speed estimation
+telemetry:
+  homography_points_file: data/annotations/homography_points.json
+  track_length_meters: null   # fill in per-circuit for real-world scaling
+  smoothing_window: 5          # frames, for speed smoothing
