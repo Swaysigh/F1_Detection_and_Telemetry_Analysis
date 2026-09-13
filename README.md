@@ -2,7 +2,7 @@
 
 Detect F1 cars in broadcast footage, classify them by team livery, track them across frames, and estimate speed/position via homography — all from race video.
 
-![Detection results](docs/images/detection_results.png)
+![Sample detections](docs/images/sample_detections.jpg)
 
 ---
 
@@ -20,30 +20,52 @@ Detect F1 cars in broadcast footage, classify them by team livery, track them ac
 ## Architecture
 
 ```
-input video
-     |
-YOLOv8 Detect          -- cars, per-frame
-     |
-Crop + Greyscale
-     |
-Team Classifier         -- livery -> team (in progress, see below)
-     |
-[ Tracking ]             -- persistent IDs across frames (not yet implemented)
-     |
-[ Homography ]            -- pixel -> real-world position
-     |
-annotated output video
+                    ┌───────────────┐
+                    │  Input Video   │
+                    └───────┬───────┘
+                            │
+                            ▼
+                  ┌───────────────────┐
+                  │   YOLOv8 Detect    │   mAP50 0.964
+                  │  (per-frame boxes) │
+                  └─────────┬─────────┘
+                            │  crop + greyscale
+                            ▼
+                  ┌───────────────────┐
+                  │  Team Classifier    │   val_acc 77.6%
+                  │  (livery → team)    │   ⚠ in progress
+                  └─────────┬─────────┘
+                            │
+                            ▼
+                  ┌───────────────────┐
+                  │      Tracking        │   ⛔ not started
+                  │  (persistent IDs)     │
+                  └─────────┬─────────┘
+                            │
+                            ▼
+                  ┌───────────────────┐
+                  │     Homography        │   ⛔ not started
+                  │  (pixel → real-world) │
+                  └─────────┬─────────┘
+                            │
+                            ▼
+                  ┌───────────────────┐
+                  │ Annotated Output    │
+                  │  (boxes + team +    │
+                  │   speed/position)     │
+                  └───────────────────┘
 ```
 
 ---
 
 ## Detection — done
 
+![Training results](docs/images/detection_results.png)
 ![Confusion matrix](docs/images/detection_confusion_matrix.png)
 
 - mAP50 **0.964**, mAP50-95 0.907, Precision 0.892, Recall 0.933
-- Trained on the `f1-car-dataset-kkvsm` Roboflow dataset (single-class "race car")
-- **Known limitation:** ~7% false-positive rate on fence mesh / crowd texture at lower confidence thresholds. Raising `--conf` to ~0.6 helps but doesn't fully eliminate it. Would need hard-negative training data to fix properly.
+- Trained on the \`f1-car-dataset-kkvsm\` Roboflow dataset (single-class "race car")
+- **Known limitation:** ~7% false-positive rate on fence mesh / crowd texture at lower confidence thresholds. Raising \`--conf\` to ~0.6 helps but doesn't fully eliminate it. Would need hard-negative training data to fix properly.
 
 ---
 
@@ -69,29 +91,29 @@ Identifying team livery from a real broadcast crop turned out to be a much harde
 
 ### 1. Clone & install
 
-```bash
+\`\`\`bash
 git clone https://github.com/<you>/F1_Detection_and_Telemetry_Analysis.git
 cd F1_Detection_and_Telemetry_Analysis
 python -m venv venv
-venv\Scripts\activate       # Windows
+venv\\Scripts\\activate       # Windows
 pip install -r requirements.txt
-```
+\`\`\`
 
-torch/torchvision are intentionally excluded from `requirements.txt` — installing them normally pulls the CPU-only build and silently overwrites any CUDA build. Install separately:
+torch/torchvision are intentionally excluded from \`requirements.txt\` — installing them normally pulls the CPU-only build and silently overwrites any CUDA build. Install separately:
 
-```bash
+\`\`\`bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-```
+\`\`\`
 
 ### 2. Get the weights
 
-Trained weights aren't committed to the repo. Download from [Releases](../../releases) and place under `models/checkpoints/`.
+Trained weights aren't committed to the repo. Download from [Releases](../../releases) and place under \`models/checkpoints/\`.
 
 ### 3. Run detection
 
-```bash
+\`\`\`bash
 python src/detection/infer_yolo.py --source path/to/video.mp4
-```
+\`\`\`
 
 Classification/tracking/telemetry stages are still under development — see Status table above.
 
@@ -99,7 +121,7 @@ Classification/tracking/telemetry stages are still under development — see Sta
 
 ## Requirements
 
-```
+\`\`\`
 Python 3.x
 ultralytics
 torch / torchvision (installed separately, see above)
@@ -107,15 +129,15 @@ opencv-python
 numpy
 pandas
 scikit-learn
-```
+\`\`\`
 
-Install core deps: `pip install -r requirements.txt`
+Install core deps: \`pip install -r requirements.txt\`
 
 ---
 
 ## Project Structure
 
-```
+\`\`\`
 F1_Detection_and_Telemetry_Analysis/
 ├── src/
 │   ├── detection/         # YOLOv8 training + inference
@@ -127,15 +149,15 @@ F1_Detection_and_Telemetry_Analysis/
 ├── models/checkpoints/      # Trained weights (see Releases, not committed)
 ├── data/                    # Raw/interim/processed (not committed)
 └── docs/images/               # Result visuals
-```
+\`\`\`
 
 ---
 
 ## Tips
 
-- **Confidence threshold** — raise `--conf` on detection to reduce fence/crowd false positives, at some cost to recall.
+- **Confidence threshold** — raise \`--conf\` on detection to reduce fence/crowd false positives, at some cost to recall.
 - **GPU acceleration** — training and inference use CUDA automatically if PyTorch detects a GPU. See the setup note above for the correct install command.
-- **Classifier config** — `configs/classifier_config.yaml` currently points at the 10-team hand-labeled dataset described above.
+- **Classifier config** — \`configs/classifier_config.yaml\` currently points at the 10-team hand-labeled dataset described above.
 
 ---
 
@@ -152,6 +174,6 @@ F1_Detection_and_Telemetry_Analysis/
 ## Next Steps
 
 - Scale hand-labeled classification data to several hundred images per class
-- Implement tracking (`src/tracking/tracker.py`) — ByteTrack or custom IoU/Kalman
+- Implement tracking (\`src/tracking/tracker.py\`) — ByteTrack or custom IoU/Kalman
 - Address detector false positives with hard-negative training data
-- Wire up `src/pipeline.py` once classification is reliable enough to be useful downstream
+- Wire up \`src/pipeline.py\` once classification is reliable enough to be useful downstream
